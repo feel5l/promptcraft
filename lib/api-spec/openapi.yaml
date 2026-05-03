@@ -1,0 +1,553 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: prompts
+    description: Prompt generation operations
+  - name: providers
+    description: AI provider information
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /providers:
+    get:
+      operationId: getProviders
+      tags: [providers]
+      summary: Get supported providers
+      description: Returns list of supported AI providers, models, and target tools
+      responses:
+        "200":
+          description: Providers list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProvidersResponse"
+
+  /prompts/generate:
+    post:
+      operationId: generateTextPrompt
+      tags: [prompts]
+      summary: Generate a text prompt
+      description: Generate a professional text prompt using the specified technique
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TextPromptRequest"
+      responses:
+        "200":
+          description: Generated prompt
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PromptResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /prompts/image:
+    post:
+      operationId: generateImagePrompt
+      tags: [prompts]
+      summary: Generate an image prompt
+      description: Generate an optimized image generation prompt for a specific tool
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImagePromptRequest"
+      responses:
+        "200":
+          description: Generated image prompt
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImagePromptResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /prompts/optimize:
+    post:
+      operationId: optimizePrompt
+      tags: [prompts]
+      summary: Optimize an existing prompt
+      description: Critique and improve an existing prompt, returning the improved version with a changelog and quality score comparison
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OptimizeRequest"
+      responses:
+        "200":
+          description: Optimized prompt result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OptimizeResult"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /prompts/video:
+    post:
+      operationId: generateVideoPrompt
+      tags: [prompts]
+      summary: Generate a video prompt
+      description: Generate an optimized video generation prompt for a specific tool
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VideoPromptRequest"
+      responses:
+        "200":
+          description: Generated video prompt
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VideoPromptResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        details:
+          type: string
+      required:
+        - error
+
+    ProvidersResponse:
+      type: object
+      properties:
+        providers:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProviderInfo"
+        imageTools:
+          type: array
+          items:
+            $ref: "#/components/schemas/ToolInfo"
+        videoTools:
+          type: array
+          items:
+            $ref: "#/components/schemas/ToolInfo"
+        textTechniques:
+          type: array
+          items:
+            $ref: "#/components/schemas/TechniqueInfo"
+      required:
+        - providers
+        - imageTools
+        - videoTools
+        - textTechniques
+
+    ProviderInfo:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        keyPrefix:
+          type: string
+        models:
+          type: array
+          items:
+            $ref: "#/components/schemas/ModelInfo"
+      required:
+        - id
+        - name
+        - keyPrefix
+        - models
+
+    ModelInfo:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+      required:
+        - id
+        - name
+
+    ToolInfo:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+      required:
+        - id
+        - name
+        - description
+
+    TechniqueInfo:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+      required:
+        - id
+        - name
+        - description
+
+    TextPromptRequest:
+      type: object
+      properties:
+        task:
+          type: string
+          description: Description of the task or goal
+        domain:
+          type: string
+          description: Domain or field (e.g., coding, creative writing, data analysis)
+        technique:
+          type: string
+          enum: [zero-shot, few-shot, chain-of-thought, role, xml-tags, auto]
+          description: Prompt engineering technique to apply
+        provider:
+          type: string
+          description: AI provider id (openai, anthropic, gemini, openrouter)
+        model:
+          type: string
+          description: Model id to use
+        apiKey:
+          type: string
+          description: API key for the provider
+        language:
+          type: string
+          description: Preferred output language (ar, en, auto)
+          default: auto
+      required:
+        - task
+        - domain
+        - technique
+        - provider
+        - model
+        - apiKey
+
+    ImagePromptRequest:
+      type: object
+      properties:
+        description:
+          type: string
+          description: Simple description of the desired image
+        targetTool:
+          type: string
+          enum: [midjourney, dalle3, stable-diffusion, flux, ideogram, firefly]
+          description: The image generation tool to optimize for
+        style:
+          type: string
+          description: Optional style hint (e.g., photorealistic, anime, oil painting)
+        aspectRatio:
+          type: string
+          description: Desired aspect ratio (e.g., 16:9, 1:1, 9:16)
+        provider:
+          type: string
+        model:
+          type: string
+        apiKey:
+          type: string
+        language:
+          type: string
+          default: auto
+      required:
+        - description
+        - targetTool
+        - provider
+        - model
+        - apiKey
+
+    VideoPromptRequest:
+      type: object
+      properties:
+        description:
+          type: string
+          description: Description of the scene or concept
+        targetTool:
+          type: string
+          enum: [sora, runway, kling, pika, luma, hailuo]
+          description: The video generation tool to optimize for
+        duration:
+          type: string
+          description: Desired duration hint (e.g., 5s, 10s, 30s)
+        cameraStyle:
+          type: string
+          description: Camera movement preference (e.g., cinematic, handheld, drone)
+        provider:
+          type: string
+        model:
+          type: string
+        apiKey:
+          type: string
+        language:
+          type: string
+          default: auto
+      required:
+        - description
+        - targetTool
+        - provider
+        - model
+        - apiKey
+
+    PromptResponse:
+      type: object
+      properties:
+        prompt:
+          type: string
+          description: The generated prompt
+        explanation:
+          type: array
+          items:
+            $ref: "#/components/schemas/PromptSection"
+          description: Breakdown of prompt sections
+        qualityScore:
+          $ref: "#/components/schemas/QualityScore"
+        technique:
+          type: string
+        tokensUsed:
+          type: integer
+      required:
+        - prompt
+        - explanation
+        - qualityScore
+        - technique
+
+    ImagePromptResponse:
+      type: object
+      properties:
+        prompt:
+          type: string
+          description: The main optimized prompt
+        negativePrompt:
+          type: string
+          description: Negative prompt (for SD/Flux)
+        parameters:
+          type: object
+          additionalProperties:
+            type: string
+          description: Tool-specific parameters (--ar, --style, etc.)
+        tips:
+          type: array
+          items:
+            type: string
+          description: Usage tips for the specific tool
+        tokensUsed:
+          type: integer
+      required:
+        - prompt
+        - tips
+
+    VideoPromptResponse:
+      type: object
+      properties:
+        prompt:
+          type: string
+          description: The main video prompt
+        cameraDirections:
+          type: string
+          description: Camera movement and shot type directions
+        technicalSpec:
+          type: string
+          description: Technical specifications (duration, fps, style)
+        tips:
+          type: array
+          items:
+            type: string
+          description: Tool-specific tips and limitations to avoid
+        tokensUsed:
+          type: integer
+      required:
+        - prompt
+        - cameraDirections
+        - technicalSpec
+        - tips
+
+    OptimizeRequest:
+      type: object
+      properties:
+        originalPrompt:
+          type: string
+          description: The existing prompt to be improved
+        improvementGoal:
+          type: string
+          description: What the user wants to improve or what is wrong with the prompt
+        context:
+          type: string
+          description: Optional additional context about the use case
+        provider:
+          type: string
+        model:
+          type: string
+        apiKey:
+          type: string
+        language:
+          type: string
+          default: auto
+      required:
+        - originalPrompt
+        - improvementGoal
+        - provider
+        - model
+        - apiKey
+
+    OptimizeResult:
+      type: object
+      properties:
+        improvedPrompt:
+          type: string
+          description: The improved version of the prompt
+        changes:
+          type: array
+          items:
+            $ref: "#/components/schemas/PromptChange"
+          description: List of changes made to the prompt
+        beforeScore:
+          $ref: "#/components/schemas/QualityScore"
+        afterScore:
+          $ref: "#/components/schemas/QualityScore"
+        tokensUsed:
+          type: integer
+      required:
+        - improvedPrompt
+        - changes
+        - beforeScore
+        - afterScore
+
+    PromptChange:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [addition, removal, modification, restructure]
+          description: The type of change made
+        description:
+          type: string
+          description: Human-readable description of what changed and why
+      required:
+        - type
+        - description
+
+    PromptSection:
+      type: object
+      properties:
+        label:
+          type: string
+        content:
+          type: string
+        purpose:
+          type: string
+      required:
+        - label
+        - content
+        - purpose
+
+    QualityScore:
+      type: object
+      properties:
+        clarity:
+          type: integer
+          minimum: 1
+          maximum: 10
+        detail:
+          type: integer
+          minimum: 1
+          maximum: 10
+        actionability:
+          type: integer
+          minimum: 1
+          maximum: 10
+        overall:
+          type: integer
+          minimum: 1
+          maximum: 10
+        feedback:
+          type: string
+      required:
+        - clarity
+        - detail
+        - actionability
+        - overall
+        - feedback
